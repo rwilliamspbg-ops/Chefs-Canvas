@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Recipe, GeneratedMedia } from '../types';
 import { generateRecipeImage, generateRecipeVideo } from '../services/geminiService';
 
@@ -13,6 +13,8 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Sync local state when the prop recipe changes (e.g. new file uploaded)
   useEffect(() => {
@@ -55,21 +57,108 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
     setIsEditing(false);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownloadHtml = () => {
+    if (!containerRef.current) return;
+
+    // Clone the node to manipulate it without affecting the UI
+    const clone = containerRef.current.cloneNode(true) as HTMLElement;
+
+    // Remove elements that shouldn't be in the export (buttons, etc)
+    const elementsToRemove = clone.querySelectorAll('.print-hide');
+    elementsToRemove.forEach(el => el.remove());
+
+    // Get the HTML content
+    const content = clone.innerHTML;
+
+    // Construct full HTML document with styles
+    const htmlString = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${localRecipe.title} - Chef's Canvas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+              sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+            },
+            colors: {
+              paper: '#fdfbf7',
+              ink: '#2d2d2d',
+              accent: '#c25e00',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+       body { background-color: #f5f5f4; color: #1c1917; padding: 40px; }
+       .recipe-card { max-width: 900px; margin: 0 auto; background-color: #fdfbf7; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; overflow: hidden; }
+       @media print {
+         body { padding: 0; background-color: white; }
+         .recipe-card { box-shadow: none; max-width: none; }
+       }
+    </style>
+</head>
+<body>
+    <div class="recipe-card">
+        ${content}
+    </div>
+</body>
+</html>`;
+
+    // Create download link
+    const blob = new Blob([htmlString], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${localRecipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="relative mx-auto max-w-4xl bg-[#fdfbf7] shadow-2xl overflow-hidden print:shadow-none print:max-w-none group/paper">
+    <div ref={containerRef} className="relative mx-auto max-w-4xl bg-[#fdfbf7] shadow-2xl overflow-hidden print:shadow-none print:max-w-none group/paper">
       {/* Texture overlay effect */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]"></div>
 
       {/* Edit Controls */}
       <div className="absolute top-4 right-4 z-20 flex gap-2 print-hide opacity-0 group-hover/paper:opacity-100 transition-opacity focus-within:opacity-100">
         {!isEditing ? (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="p-2 bg-white/80 backdrop-blur text-stone-600 rounded-full hover:bg-white hover:text-accent shadow-sm border border-stone-200 transition-all"
-            title="Edit Details"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-          </button>
+          <>
+            <button
+              onClick={handleDownloadHtml}
+              className="p-2 bg-white/80 backdrop-blur text-stone-600 rounded-full hover:bg-white hover:text-accent shadow-sm border border-stone-200 transition-all"
+              title="Save as HTML"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            </button>
+            <button
+              onClick={handlePrint}
+              className="p-2 bg-white/80 backdrop-blur text-stone-600 rounded-full hover:bg-white hover:text-accent shadow-sm border border-stone-200 transition-all"
+              title="Print / Save PDF"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2.5 0a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM9 21h6M9 17h6" /></svg>
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-2 bg-white/80 backdrop-blur text-stone-600 rounded-full hover:bg-white hover:text-accent shadow-sm border border-stone-200 transition-all"
+              title="Edit Details"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            </button>
+          </>
         ) : (
           <button
             onClick={handleSave}

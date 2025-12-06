@@ -47,10 +47,10 @@ const App: React.FC = () => {
              <p>Waiting for API Key selection...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8 items-start print:block">
             
             {/* Sidebar / Input Area */}
-            <div className="lg:sticky lg:top-24 space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-6 print:hidden">
               <RecipeInput onParse={handleParse} status={status} />
               
               {/* Instructions / Help */}
