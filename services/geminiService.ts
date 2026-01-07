@@ -1,8 +1,45 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Recipe } from "../types";
 
 // Helper to get fresh AI instance (crucial for Veo key updates)
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+/**
+ * Uses a fast model to generate a highly descriptive prompt for image/video models.
+ * This analyzes the recipe to determine the best visual style, lighting, and composition.
+ */
+const craftArtisticPrompt = async (recipe: Recipe, target: 'image' | 'video'): Promise<string> => {
+  const ai = getAI();
+  const systemInstruction = `You are an expert food stylist and professional commercial photographer/videographer. 
+  Your goal is to write a single-paragraph prompt for an AI ${target === 'image' ? 'image' : 'video'} generation model.
+  
+  Consider the dish's origin, texture, and colors. 
+  - For rustic dishes: use warm, natural, side-lit, slightly moody settings.
+  - For modern/fine dining: use clean, minimalist, bright, high-key photography.
+  - For vibrant/spicy/tropical: use high-contrast, colorful, saturated palettes.
+  
+  Focus on sensory details: textures (crunchy, silky, steaming), colors, and composition (macro, overhead, 45-degree).
+  Do not use buzzwords like "photorealistic", instead describe the lighting and camera lens.
+  Keep it under 75 words.`;
+
+  const userPrompt = `Recipe: ${recipe.title}. 
+  Description: ${recipe.description}. 
+  Ingredients: ${recipe.ingredients.slice(0, 5).join(', ')}.
+  
+  Create a professional ${target === 'image' ? 'photography' : 'cinematic video'} prompt for this dish.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: userPrompt,
+    config: {
+      systemInstruction,
+      temperature: 0.8,
+    }
+  });
+
+  return response.text || `Professional ${target} of ${recipe.title}`;
+};
 
 export const parseRecipe = async (
   textInput: string,
@@ -69,15 +106,16 @@ export const parseRecipe = async (
 
 export const generateRecipeImage = async (recipe: Recipe): Promise<string> => {
   const ai = getAI();
-  const prompt = `Professional food photography of ${recipe.title}. 
-  ${recipe.description}. 
-  High resolution, cookbook style, soft natural lighting, overhead or 45-degree angle, delicious, garnished.`;
+  
+  // Phase 1: Craft the perfect artistic prompt
+  const enhancedPrompt = await craftArtisticPrompt(recipe, 'image');
+  console.log("Image Generation Prompt:", enhancedPrompt);
 
-  // Using generateContent for nano banana series as per guidelines
+  // Phase 2: Generate the image
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-image-preview',
     contents: {
-      parts: [{ text: prompt }],
+      parts: [{ text: enhancedPrompt }],
     },
     config: {
       imageConfig: {
@@ -98,13 +136,15 @@ export const generateRecipeImage = async (recipe: Recipe): Promise<string> => {
 
 export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
   const ai = getAI();
-  const prompt = `Cinematic slow motion video of ${recipe.title}. 
-  Close up, steam rising, delicious texture, professional lighting, 4k resolution. 
-  The food looks freshly prepared and appetizing.`;
 
+  // Phase 1: Craft the perfect cinematic prompt
+  const enhancedPrompt = await craftArtisticPrompt(recipe, 'video');
+  console.log("Video Generation Prompt:", enhancedPrompt);
+
+  // Phase 2: Generate the video
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
-    prompt: prompt,
+    prompt: enhancedPrompt,
     config: {
       numberOfVideos: 1,
       resolution: '720p',
@@ -123,7 +163,5 @@ export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
       throw new Error("Video generation failed or no URI returned.");
   }
 
-  // The response.body contains the MP4 bytes. We must append an API key when fetching from the download link.
-  // Note: We return the fetchable URL here.
   return `${downloadLink}&key=${process.env.API_KEY}`;
 };
