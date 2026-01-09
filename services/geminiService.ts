@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Recipe } from "../types";
 
 // Helper to get fresh AI instance (crucial for Veo key updates)
-const getAI = () => new GoogleGenAI({ apikey: (window as any).GEMINI_API_KEY });
+const getAI = () => new GoogleGenAI({ apiKey: (window as any).GEMINI_API_KEY });
 
 /**
  * Uses a fast model to generate a highly descriptive prompt for image/video models.
