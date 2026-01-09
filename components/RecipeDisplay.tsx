@@ -253,7 +253,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
         </header>
 
         {/* Media Section */}
-        <div className="mb-12 space-y-8 print-hide">
+        <div className="mb-12 space-y-8">
           {/* Image Area */}
           <div className="relative bg-stone-200 min-h-[400px] rounded-sm overflow-hidden shadow-inner group">
              {media.imageUrl ? (
