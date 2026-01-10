@@ -46,9 +46,10 @@ EXPOSE 3001 80
 
 # Create startup script
 RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'nginx' >> /start.sh && \
+    echo 'nginx &' >> /start.sh && \
     echo 'cd /app/server && node index.js' >> /start.sh && \
     chmod +x /start.sh
 
 # Start both nginx and Node.js server
 CMD ["/start.sh"]
+
