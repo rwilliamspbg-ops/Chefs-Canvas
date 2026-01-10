@@ -163,4 +163,16 @@ export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
       throw new Error("Video generation failed or no URI returned.");
   }
 
-  return downloadLink;};
+  // Fetch the video with authentication header and create a blob URL
+  const apiKey = (window as any).GEMINI_API_KEY;
+  const response = await fetch(downloadLink, {
+    headers: { 'x-goog-api-key': apiKey }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch video: ${response.statusText}`);
+  }
+  
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  return blobUrl;
