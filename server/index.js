@@ -5,6 +5,7 @@ import multer from 'multer';
 import OpenAI from 'openai';
 import pdfParse from 'pdf-parse';
 
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 dotenv.config();
 
 const app = express();
@@ -42,9 +43,45 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
       const mimeType = req.file.mimetype;
       
       if (mimeType === 'application/pdf') {
+        // Try text extraction first
         const pdfData = await pdfParse(req.file.buffer);
         textInput = pdfData.text;
-      } else {
+        
+        // If text is minimal, use vision API on PDF pages
+        if (!textInput || textInput.trim().length < 100) {
+          const pdfDoc = await pdfjsLib.getDocument({ data: req.file.buffer }).promise;
+          const numPages = pdfDoc.numPages;
+          const pageTexts = [];
+          
+          for (let pageNum = 1; pageNum <= Math.min(numPages, 3); pageNum++) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = { width: viewport.width, height: viewport.height };
+            
+            const renderContext = {
+              canvasContext: null,
+              viewport: viewport
+            };
+            
+            // Render page to get image data
+            const operatorList = await page.getOperatorList();
+            
+            // Use vision API
+            const visionResponse = await openaiClient.chat.completions.create({
+              model: 'gpt-4o',
+              messages: [{
+                role: 'user',
+                content: [
+                  { type: 'text', text: 'Extract all recipe text from this PDF page. Include title, ingredients, instructions, servings, prep time, and cook time.' },
+                  { type: 'image_url', image_url: { url: `data:application/pdf;base64,${req.file.buffer.toString('base64')}` } },
+                ],
+              }],
+              max_tokens: 1500,
+            });
+            pageTexts.push(visionResponse.choices[0]?.message?.content || '');
+          }
+          textInput = pageTexts.join('\n\n');
+        }      } else {
         const visionResponse = await openaiClient.chat.completions.create({
           model: 'gpt-4o',
           messages: [{
