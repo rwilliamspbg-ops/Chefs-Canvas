@@ -4,11 +4,12 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripvite build,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-        "openai": "^4.77.0",
+  "depen        "openai": "^4.77.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
         "pdfjs-dist": "^4.0.379"
