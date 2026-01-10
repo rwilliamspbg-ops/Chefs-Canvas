@@ -28,14 +28,14 @@ export const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onReady }) => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
         <h2 className="text-2xl font-serif font-bold text-stone-800 mb-3">Unlock Chef's Canvas</h2>
         <p className="text-stone-600 mb-6 text-sm">
-          To generate professional food photography  with PERPLEXITY,
-          please enter your Perplexity API key.
+          To parse recipes from images and PDFs with GEMINI,
+          please enter your Gemini API key.
         </p>
         
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-2">
-              PERPLEXITY API Key
+              GEMINI API Key
             </label>
             <input
               type="password"
