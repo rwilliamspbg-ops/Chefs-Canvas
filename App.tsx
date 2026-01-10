@@ -36,7 +36,7 @@ const App: React.FC = () => {
             <div className="w-8 h-8 bg-accent rounded-sm flex items-center justify-center text-white font-serif font-bold text-lg">C</div>
             <span className="font-serif font-bold text-xl text-stone-800 tracking-tight">Chef's Canvas</span>
           </div>
-          <div className="text-xs text-stone-400 font-mono hidden sm:block">POWERED BY GEMINI 2.5 & VEO</div>
+          <div className="text-xs text-stone-400 font-mono hidden sm:block">POWERED BY GEMINI 2.5 </div>
         </div>
       </nav>
 
