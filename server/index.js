@@ -13,6 +13,15 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+
+// Serve static files from public directory
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, '../public')));
 // Perplexity for text processing
 const perplexityClient = new OpenAI({
   apiKey: process.env.PERPLEXITY_API_KEY,
@@ -75,6 +84,12 @@ Ensure all fields are filled.`;
     console.error('Error parsing recipe:', error);
     res.status(500).json({ error: 'Failed to parse recipe', details: error.message });
   }
+});
+
+
+// Serve index.html for all other routes (SPA support)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 const PORT = process.env.PORT || 3001;
