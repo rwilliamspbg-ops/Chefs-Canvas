@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Recipe, GeneratedMedia } from '../types';
-import { generateRecipeImage, generateRecipeVideo } from '../services/geminiService';
+import { generateRecipeImage } from '../services/geminiService';
 
 interface RecipeDisplayProps {
   recipe: Recipe;
@@ -11,7 +11,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [media, setMedia] = useState<GeneratedMedia>({});
   const [loadingImage, setLoadingImage] = useState(false);
-  const [loadingVideo, setLoadingVideo] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,23 +36,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
     }
   };
 
-  const handleGenerateVideo = async () => {
-    setLoadingVideo(true);
-    setError(null);
-    try {
-      const url = await generateRecipeVideo(localRecipe);
-      setMedia(prev => ({ ...prev, videoUrl: url }));
-    } catch (e: any) {
-      setError("Video generation failed: " + e.message);
-    } finally {
-      setLoadingVideo(false);
-    }
-  };
-
-  const handleChange = (field: keyof Recipe, value: string) => {
-    setLocalRecipe(prev => ({ ...prev, [field]: value }));
-  };
-
+ 
   const handleSave = () => {
     setIsEditing(false);
   };
@@ -282,47 +266,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
              )}
           </div>
 
-          {/* Video Area */}
-          <div className="relative">
-             {media.videoUrl ? (
-               <div className="rounded-xl overflow-hidden shadow-lg border border-stone-200">
-                  <video controls className="w-full aspect-video bg-black" src={media.videoUrl}>
-                    Your browser does not support the video tag.
-                  </video>
-                  <div className="bg-white p-3 text-xs text-center text-stone-500 font-mono">
-                    GENERATED WITH VEO
-                  </div>
-               </div>
-             ) : (
-               <div className="border-2 border-dashed border-stone-300 rounded-xl p-8 flex flex-col items-center justify-center bg-stone-50/50">
-                  <p className="mb-4 text-stone-400 font-serif text-lg italic text-center">Bring this recipe to life with motion</p>
-                  <button 
-                    onClick={handleGenerateVideo}
-                    disabled={loadingVideo}
-                    className="px-6 py-2 bg-accent text-white rounded-full hover:bg-orange-700 transition shadow-lg flex items-center gap-2 disabled:opacity-50"
-                  >
-                     {loadingVideo ? (
-                      <>
-                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                        Generating Video (this takes a moment)...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        Generate Video (Veo)
-                      </>
-                    )}
-                  </button>
-               </div>
-             )}
-          </div>
-          
-          {error && (
-            <div className="p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">
-              {error}
-            </div>
-          )}
-        </div>
+         
 
         {/* Recipe Content - 2 Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
