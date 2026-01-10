@@ -28,7 +28,7 @@ export const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onReady }) => {
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
         <h2 className="text-2xl font-serif font-bold text-stone-800 mb-3">Unlock Chef's Canvas</h2>
         <p className="text-stone-600 mb-6 text-sm">
-          To generate professional food photography and cinematic videos with Gemini Veo, 
+          To generate professional food photography  with Gemini,
           please enter your Google Gemini API key.
         </p>
         
