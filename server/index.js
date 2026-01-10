@@ -5,7 +5,6 @@ import multer from 'multer';
 import OpenAI from 'openai';
 import pdfParse from 'pdf-parse';
 
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 dotenv.config();
 
 const app = express();
@@ -49,7 +48,8 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
         
         // If text is minimal, use vision API on PDF pages
         if (!textInput || textInput.trim().length < 100) {
-          const pdfDoc = await pdfjsLib.getDocument({ data: req.file.buffer }).promise;
+          const pdfDoc = await 49
+            .getDocument({ data: req.file.buffer }).promise;
           const numPages = pdfDoc.numPages;
           const pageTexts = [];
           
@@ -132,3 +132,4 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {  console.log(`Server running on http://localhost:${PORT}`);
 });
+49
