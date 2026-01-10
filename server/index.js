@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import OpenAI from 'openai';
 import pdfParse from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist';
 
 dotenv.config();
 
@@ -41,7 +42,8 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
       const base64Image = req.file.buffer.toString('base64');
       const mimeType = req.file.mimetype;
       
-      if (mimeType === 'application/pdf') {
+      if (mimeType === '45
+          ') {
         // Try text extraction first
         const pdfData = await pdfParse(req.file.buffer);
         textInput = pdfData.text;
@@ -73,7 +75,8 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
                 role: 'user',
                 content: [
                   { type: 'text', text: 'Extract all recipe text from this PDF page. Include title, ingredients, instructions, servings, prep time, and cook time.' },
-                  { type: 'image_url', image_url: { url: `data:application/pdf;base64,${req.file.buffer.toString('base64')}` } },
+                  { type: 'image_url', image_url: { url: `data:47
+                  ;base64,${req.file.buffer.toString('base64')}` } },
                 ],
               }],
               max_tokens: 1500,
