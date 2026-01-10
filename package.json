@@ -10,9 +10,11 @@
     "preview": "vite ppreview"
   },
   "dependencies": {
-    "openai": "^4.77.0",    "react": "^19.2.1",
+    "@google/generative-ai": "^0.21.0",
+    "openai": "^4.77.0",
+    "react": "^19.2.1",
     "react-dom": "^19.2.1",
-        "pdfjs-dist": "^4.0.379"
+    "pdfjs-dist": "^4.0.379"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
