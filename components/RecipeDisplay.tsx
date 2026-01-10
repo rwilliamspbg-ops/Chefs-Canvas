@@ -305,7 +305,5 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
           </div>
           <p className="text-stone-400 text-xs uppercase tracking-widest">Chef's Canvas • AI Generated Cookbook</p>
         </footer>
-      </div>
-        </div>
   );
 };
