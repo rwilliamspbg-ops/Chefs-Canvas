@@ -47,58 +47,62 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
         // Try text extraction first
         const pdfData = await pdfParse(req.file.buffer);
         textInput = pdfData.text;
-        
-        // If text is minimal, use vision API on PDF pages
-        if (!textInput || textInput.trim().length < 100) {
-        const pdfDoc = await pdfjsLib.getDocument({ data: req.file.buffer }).promise;
-          const numPages = pdfDoc.numPages;
-          const pageTexts = [];
-          
-          for (let pageNum = 1; pageNum <= Math.min(numPages, 3); pageNum++) {
-            const page = await pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 2.0 });
-            const canvas = { width: viewport.width, height: viewport.height };
-            
-            const renderContext = {
-              canvasContext: null,
-              viewport: viewport
-            };
-            
-            // Render page to get image data
-            const operatorList = await page.getOperatorList();
-            
-            // Use vision API
-            const visionResponse = await openaiClient.chat.completions.create({
-              model: 'gpt-4o',
-              messages: [{
-                role: 'user',
-                content: [
-                  { type: 'text', text: 'Extract all recipe text from this PDF page. Include title, ingredients, instructions, servings, prep time, and cook time.' },
-                  { type: 'image_url', image_url: { url: `data:47
-                  ;base64,${req.file.buffer.toString('base64')}` } },
-                ],
-              }],
-              max_tokens: 1500,
-            });
-            pageTexts.push(visionResponse.choices[0]?.message?.content || '');
+
+    import { PDFDocument } from 'pdf-lib';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// ... inside your API route handler (e.g., app.post('/parse-pdf', ...))
+
+try {
+  const pdfBuffer = req.file.buffer; // Assuming usage of multer or similar
+
+  // Optional: Use pdf-lib to load and sanitize the PDF (verifies integrity)
+  const pdfDoc = await PDFDocument.load(pdfBuffer);
+  const pageCount = pdfDoc.getPageCount();
+  
+  // Optimization: If PDF is massive, you could split it here using pdf-lib
+  // For now, we save it back to a clean buffer to ensure valid headers
+  const cleanPdfBytes = await pdfDoc.save(); 
+  
+  // Convert to Base64 for OpenAI
+  const base64Pdf = Buffer.from(cleanPdfBytes).toString('base64');
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o", // Use the latest model with Vision/PDF support
+    messages: [
+      {
+        role: "user",
+        content: [
+          { 
+            type: "text", 
+            text: "Please analyze this PDF invoice. Extract the total amount, vendor name, and invoice date. Return JSON." 
+          },
+          {
+            // Direct PDF ingestion (simpler than converting to images manually)
+            type: "image_url",
+            image_url: {
+              url: `data:application/pdf;base64,${base64Pdf}`,
+              detail: "high"
+            }
           }
-          textInput = pageTexts.join('\n\n');
-        }      } else {
-        const visionResponse = await openaiClient.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Extract all recipe text from this image. Include title, ingredients, instructions, servings, prep time, and cook time.' },
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
-            ],
-          }],
-          max_tokens: 1500,
-        });
-        textInput = visionResponse.choices[0]?.message?.content || '';
+        ]
       }
-    }
-    
+    ],
+    response_format: { type: "json_object" } // Ensures clean JSON output
+  });
+
+  const parsedData = JSON.parse(completion.choices[0].message.content);
+  
+  res.json({ success: true, data: parsedData, pages: pageCount });
+
+} catch (error) {
+  console.error('PDF Parsing Error:', error);
+  res.status(500).json({ error: "Failed to parse PDF" });
+}
     if (!textInput) {
       return res.status(400).json({ error: 'No recipe text or image provided' });
     }
