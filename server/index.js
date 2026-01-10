@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import OpenAI from 'openai';
 import pdfParse from 'pdf-parse';
-import * as pdfjsLib from 'pdfjs-dist';
+import { PDFDocument } from 'pdf-lib';
 
 dotenv.config();
 
