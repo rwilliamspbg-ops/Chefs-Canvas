@@ -23,6 +23,14 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install canvas dependencies
+
+# Install C++ build tools and Python for node-gyp
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    gcc \
+    musl-dev
 RUN apk add --no-cache \
     cairo-dev \
     jpeg-dev \
@@ -54,4 +62,5 @@ WORKDIR /app/server
 
 # Start the Node.js server (it will serve both API and static files)
 CMD ["node", "index.js"]
+
 
