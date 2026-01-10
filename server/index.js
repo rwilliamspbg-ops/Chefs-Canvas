@@ -50,8 +50,7 @@ app.post('/api/parse-recipe', upload.single('image'), async (req, res) => {
         
         // If text is minimal, use vision API on PDF pages
         if (!textInput || textInput.trim().length < 100) {
-          const pdfDoc = await 49
-            .getDocument({ data: req.file.buffer }).promise;
+        const pdfDoc = await pdfjsLib.getDocument({ data: req.file.buffer }).promise;
           const numPages = pdfDoc.numPages;
           const pageTexts = [];
           
