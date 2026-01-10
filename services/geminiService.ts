@@ -1,44 +1,46 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import OpenAI from "openai";
 import { Recipe } from "../types";
 
-// Helper to get fresh AI instance (crucial for Veo key updates)
-const getAI = () => new GoogleGenAI({ apiKey: (window as any).GEMINI_API_KEY });
+// Initialize Perplexity client using OpenAI SDK
+const getClient = () => new OpenAI({
+  apiKey: (window as any).PERPLEXITY_API_KEY,
+  baseURL: "https://api.perplexity.ai",
+});
 
 /**
- * Uses a fast model to generate a highly descriptive prompt for image/video models.
- * This analyzes the recipe to determine the best visual style, lighting, and composition.
+ * Uses Perplexity to generate a descriptive prompt for recipe visualization
  */
 const craftArtisticPrompt = async (recipe: Recipe, target: 'image' | 'video'): Promise<string> => {
-  const ai = getAI();
+  const client = getClient();
+  
   const systemInstruction = `You are an expert food stylist and professional commercial photographer/videographer. 
-  Your goal is to write a single-paragraph prompt for an AI ${target === 'image' ? 'image' : 'video'} generation model.
-  
-  Consider the dish's origin, texture, and colors. 
-  - For rustic dishes: use warm, natural, side-lit, slightly moody settings.
-  - For modern/fine dining: use clean, minimalist, bright, high-key photography.
-  - For vibrant/spicy/tropical: use high-contrast, colorful, saturated palettes.
-  
-  Focus on sensory details: textures (crunchy, silky, steaming), colors, and composition (macro, overhead, 45-degree).
-  Do not use buzzwords like "photorealistic", instead describe the lighting and camera lens.
-  Keep it under 75 words.`;
+Your goal is to write a single-paragraph prompt for an AI ${target === 'image' ? 'image' : 'video'} generation model.
+
+Consider the dish's origin, texture, and colors. 
+- For rustic dishes: use warm, natural, side-lit, slightly moody settings.
+- For modern/fine dining: use clean, minimalist, bright, high-key photography.
+- For vibrant/spicy/tropical: use high-contrast, colorful, saturated palettes.
+
+Focus on sensory details: textures (crunchy, silky, steaming), colors, and composition (macro, overhead, 45-degree).
+Do not use buzzwords like "photorealistic", instead describe the lighting and camera lens.
+Keep it under 75 words.`;
 
   const userPrompt = `Recipe: ${recipe.title}. 
-  Description: ${recipe.description}. 
-  Ingredients: ${recipe.ingredients.slice(0, 5).join(', ')}.
-  
-  Create a professional ${target === 'image' ? 'photography' : 'cinematic video'} prompt for this dish.`;
+Description: ${recipe.description}. 
+Ingredients: ${recipe.ingredients.slice(0, 5).join(', ')}.
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: userPrompt,
-    config: {
-      systemInstruction,
-      temperature: 0.8,
-    }
+Create a professional ${target === 'image' ? 'photography' : 'cinematic video'} prompt for this dish.`;
+
+  const response = await client.chat.completions.create({
+    model: "llama-3.1-sonar-small-128k-online",
+    messages: [
+      { role: "system", content: systemInstruction },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.8,
   });
 
-  return response.text || `Professional ${target} of ${recipe.title}`;
+  return response.choices[0]?.message?.content || `Professional ${target} of ${recipe.title}`;
 };
 
 export const parseRecipe = async (
@@ -46,134 +48,60 @@ export const parseRecipe = async (
   imageBase64?: string,
   mimeType: string = "image/png"
 ): Promise<Recipe> => {
-  const ai = getAI();
+  const client = getClient();
   
-  const prompt = `
-    Extract a structured recipe from the provided input. 
-    If it is an image, transcribe the recipe details. 
-    If it is text, structure it accordingly.
-    Ensure all fields are filled. If specific times or servings are missing, make a reasonable estimate based on the recipe type.
-  `;
+  // Perplexity doesn't support image input in the same way as Gemini
+  // For image-based recipe extraction, we'll need to use the text description
+  // or implement a separate vision API if needed
+  
+  const prompt = `Extract a structured recipe from the following input.
+Provide the response as valid JSON with these exact fields: title, description, ingredients (array), instructions (array), servings, prepTime, cookTime.
 
-  const parts: any[] = [{ text: prompt }];
-  
-  if (textInput) {
-    parts.push({ text: `Recipe Text:\n${textInput}` });
-  }
-  
-  if (imageBase64) {
-    parts.push({
-      inlineData: {
-        data: imageBase64,
-        mimeType: mimeType,
-      },
-    });
-  }
+Recipe Text:
+${textInput}
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: { parts },
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          description: { type: Type.STRING },
-          ingredients: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING } 
-          },
-          instructions: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING } 
-          },
-          servings: { type: Type.STRING },
-          prepTime: { type: Type.STRING },
-          cookTime: { type: Type.STRING },
-        },
-        required: ["title", "description", "ingredients", "instructions"],
-      },
-    },
+Ensure all fields are filled. If specific times or servings are missing, make a reasonable estimate based on the recipe type.`;
+
+  const response = await client.chat.completions.create({
+    model: "llama-3.1-sonar-large-128k-online",
+    messages: [
+      { role: "user", content: prompt },
+    ],
+    response_format: { type: "json_object" },
   });
 
-  if (!response.text) {
+  if (!response.choices[0]?.message?.content) {
     throw new Error("Failed to extract recipe.");
   }
 
-  return JSON.parse(response.text) as Recipe;
+  return JSON.parse(response.choices[0].message.content) as Recipe;
 };
 
 export const generateRecipeImage = async (recipe: Recipe): Promise<string> => {
-  const ai = getAI();
+  // Note: Perplexity doesn't have native image generation capabilities
+  // You would need to integrate with a separate image generation service
+  // like DALL-E, Stable Diffusion, or Midjourney
   
-  // Phase 1: Craft the perfect artistic prompt
+  // For now, we'll create a placeholder that explains this limitation
+  console.warn("Image generation requires integration with a separate service like DALL-E or Stable Diffusion");
+  
+  // Example: You could integrate OpenAI's DALL-E here
   const enhancedPrompt = await craftArtisticPrompt(recipe, 'image');
   console.log("Image Generation Prompt:", enhancedPrompt);
-
-  // Phase 2: Generate the image
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
-    contents: {
-      parts: [{ text: enhancedPrompt }],
-    },
-    config: {
-      imageConfig: {
-        aspectRatio: "4:3",
-        imageSize: "1K"
-      }
-    },
-  });
-
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
-    }
-  }
-
-  throw new Error("No image generated.");
+  
+  // Placeholder return - integrate with your image generation service
+  throw new Error("Image generation not yet implemented. Please integrate with DALL-E, Stable Diffusion, or similar service.");
 };
 
 export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
-  const ai = getAI();
-
-  // Phase 1: Craft the perfect cinematic prompt
+  // Note: Perplexity doesn't have native video generation capabilities
+  // You would need to integrate with a separate video generation service
+  
+  console.warn("Video generation requires integration with a separate service");
+  
   const enhancedPrompt = await craftArtisticPrompt(recipe, 'video');
   console.log("Video Generation Prompt:", enhancedPrompt);
-
-  // Phase 2: Generate the video
-  let operation = await ai.models.generateVideos({
-    model: 'veo-3.1-fast-generate-preview',
-    prompt: enhancedPrompt,
-    config: {
-      numberOfVideos: 1,
-      resolution: '720p',
-      aspectRatio: '16:9'
-    }
-  });
-
-  while (!operation.done) {
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    operation = await ai.operations.getVideosOperation({operation: operation});
-  }
-
-  const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
   
-  if (!downloadLink) {
-      throw new Error("Video generation failed or no URI returned.");
-  }
-
-  // Fetch the video with authentication header and create a blob URL
-  const apiKey = (window as any).GEMINI_API_KEY;
-  const response = await fetch(downloadLink, {
-    headers: { 'x-goog-api-key': apiKey }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch video: ${response.statusText}`);
-  }
-  
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  return blobUrl;
+  // Placeholder return - integrate with your video generation service
+  throw new Error("Video generation not yet implemented. Please integrate with a video generation service.");
 };
