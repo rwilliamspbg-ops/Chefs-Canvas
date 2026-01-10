@@ -328,8 +328,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
           
           {/* Ingredients Column */}
-          <div className="md:col-span-4 lg:col-span-3">
-            <h3 className="text-xl font-serif font-bold text-stone-900 border-b-2 border-accent inline-block mb-6 pb-1">Ingredients</h3>
+      <div className="md:col-span-5 lg:col-span-4">            <h3 className="text-xl font-serif font-bold text-stone-900 border-b-2 border-accent inline-block mb-6 pb-1">Ingredients</h3>
             <ul className="space-y-3 font-sans text-sm md:text-base text-stone-700">
               {localRecipe.ingredients.map((ing, idx) => (
                 <li key={idx} className="flex items-start gap-3 group">
@@ -341,8 +340,7 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
           </div>
 
           {/* Instructions Column */}
-          <div className="md:col-span-8 lg:col-span-9">
-            <h3 className="text-xl font-serif font-bold text-stone-900 border-b-2 border-accent inline-block mb-6 pb-1">Preparation</h3>
+      <div className="md:col-span-7 lg:col-span-8">            <h3 className="text-xl font-serif font-bold text-stone-900 border-b-2 border-accent inline-block mb-6 pb-1">Preparation</h3>
             <div className="space-y-8">
               {localRecipe.instructions.map((step, idx) => (
                 <div key={idx} className="relative pl-8">
