@@ -113,7 +113,6 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   };
 
   return (
-    <div ref={containerRef} className="relative mx-auto max-w-4xl bg-[#fdfbf7] shadow-2xl overflow-hidden print:shadow-none print:max-w-none group/paper">
       {/* Texture overlay effect */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]"></div>
 
