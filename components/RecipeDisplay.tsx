@@ -308,4 +308,3 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
       </div>
     </div>
   );
-};
