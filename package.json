@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite ppreview"
   },
-  "depen        "openai": "^4.77.0",
-    "react": "^19.2.1",
+  "dependencies": {
+    "openai": "^4.77.0",    "react": "^19.2.1",
     "react-dom": "^19.2.1",
         "pdfjs-dist": "^4.0.379"
   },
