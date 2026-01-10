@@ -44,13 +44,9 @@ COPY nginx.conf /etc/nginx/http.d/default.conf
 # Expose port (Railway will set PORT env var)
 EXPOSE 8080
 
-# Create startup script that uses Railway's PORT
-RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'PORT=${PORT:-8080}' >> /start.sh && \
-    echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/http.d/default.conf' >> /start.sh && \
-    echo 'nginx &' >> /start.sh && \
-    echo 'cd /app/server && PORT=3001 node index.js' >> /start.sh && \
-    chmod +x /start.sh
-
+# Copy startup script
+COPY startup.sh /start.sh
+RUN chmod +x /start.sh
 # Start both nginx and Node.js server
 CMD ["/start.sh"]
+
