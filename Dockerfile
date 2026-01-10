@@ -22,6 +22,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install canvas dependencies
+RUN apk add --no-cache \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
 # Copy server package files
 COPY server/package*.json ./server/
 
@@ -43,3 +54,4 @@ WORKDIR /app/server
 
 # Start the Node.js server (it will serve both API and static files)
 CMD ["node", "index.js"]
+
