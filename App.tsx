@@ -60,7 +60,6 @@ const App: React.FC = () => {
                   <li>Upload a screenshot of a recipe (PDF/Web) or paste the text.</li>
                   <li>Gemini extracts the details into a structured format.</li>
                   <li>Click <strong>Generate Photo</strong> to create a professional dish image.</li>
-                  <li>Click <strong>Generate Video</strong> to create a Veo cinematic video.</li>
                 </ol>
               </div>
             </div>
