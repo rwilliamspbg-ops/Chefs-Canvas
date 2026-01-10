@@ -2,14 +2,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  define: {
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
-  },
-    base: '/Chefs-Canvas/',
-  build: {
-    outDir: 'dist',
-  },
-  server: {
-    port: 3000,
+build: {
+     outDir: 'dist
   }
 });
