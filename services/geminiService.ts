@@ -176,3 +176,4 @@ export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
   return blobUrl;
+};
