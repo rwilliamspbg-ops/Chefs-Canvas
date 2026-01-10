@@ -35,7 +35,7 @@ export const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onReady }) => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-2">
-              PERPLEXITY API Key
+              GEMINI API Key
             </label>
             <input
               type="password"
