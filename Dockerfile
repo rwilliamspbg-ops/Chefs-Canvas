@@ -11,17 +11,14 @@ COPY package*.json ./
 # Install frontend dependencies
 RUN npm install
 
-# Copy frontend application files  
+# Copy frontend application files
 COPY . .
 
 # Build the frontend application with API key embedded
 RUN PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY} npm run build
 
-# Stage 2: Production - Node.js with nginx
+# Stage 2: Production - Single Node.js server
 FROM node:18-alpine
-
-# Install nginx
-RUN apk add --no-cache nginx
 
 WORKDIR /app
 
@@ -35,18 +32,14 @@ RUN npm install --production
 # Copy server code
 COPY server/ .
 
-# Copy built frontend files
-COPY --from=build-frontend /app/dist /usr/share/nginx/html
+# Copy built frontend files to server's public directory
+COPY --from=build-frontend /app/dist ../public
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/http.d/default.conf
+# Expose port
+EXPOSE 3001
 
-# Expose port (Railway will set PORT env var)
-EXPOSE 8080
+# Set working directory back to server
+WORKDIR /app/server
 
-# Copy startup script
-COPY startup.sh /start.sh
-RUN chmod +x /start.sh
-# Start both nginx and Node.js server
-CMD ["/start.sh"]
-
+# Start the Node.js server (it will serve both API and static files)
+CMD ["node", "index.js"]
