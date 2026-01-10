@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Recipe, GeneratedMedia } from '../types';
-import { generateRecipeImage, generateRecipeVideo } from '../services/geminiService';
+import { generateRecipeImage } from '../services/geminiService';
 
 interface RecipeDisplayProps {
   recipe: Recipe;
@@ -11,7 +11,6 @@ export const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [media, setMedia] = useState<GeneratedMedia>({});
   const [loadingImage, setLoadingImage] = useState(false);
-  const [loadingVideo, setLoadingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
