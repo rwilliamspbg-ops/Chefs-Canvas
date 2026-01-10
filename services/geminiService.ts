@@ -163,5 +163,4 @@ export const generateRecipeVideo = async (recipe: Recipe): Promise<string> => {
       throw new Error("Video generation failed or no URI returned.");
   }
 
-  return `${downloadLink}&key=${process.env.API_KEY}`;
-};
+  return downloadLink;};
