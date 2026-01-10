@@ -11,7 +11,7 @@ COPY package*.json ./
 # Install frontend dependencies
 RUN npm install
 
-# Copy frontend application files
+# Copy frontend application files  
 COPY . .
 
 # Build the frontend application with API key embedded
@@ -41,15 +41,16 @@ COPY --from=build-frontend /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
-# Expose ports (3001 for backend, 80 for frontend)
-EXPOSE 3001 80
+# Expose port (Railway will set PORT env var)
+EXPOSE 8080
 
-# Create startup script
+# Create startup script that uses Railway's PORT
 RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'PORT=${PORT:-8080}' >> /start.sh && \
+    echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/http.d/default.conf' >> /start.sh && \
     echo 'nginx &' >> /start.sh && \
-    echo 'cd /app/server && node index.js' >> /start.sh && \
+    echo 'cd /app/server && PORT=3001 node index.js' >> /start.sh && \
     chmod +x /start.sh
 
 # Start both nginx and Node.js server
 CMD ["/start.sh"]
-
